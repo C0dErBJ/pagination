@@ -1,8 +1,12 @@
 # pagination
-*一个简单的前端分页*
+*一个简单的前端分页* 
 
+*借鉴* [pageView]
 
-#如何使用
+[pageView]: https://github.com/liuyunzhuge/blog/blob/master/form/src/js/mod/pageView.js
+
+> 依赖Jquery，Bootstrap
+# 如何使用
 ###Html
 >```html
 > <div class="fenye" id="pagination">
