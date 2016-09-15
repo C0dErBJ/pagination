@@ -8,10 +8,11 @@
 > 依赖Jquery，Bootstrap
 
 # 如何使用
-###Html
+### Html
 >```html
 > <div class="fenye" id="pagination">
 > </div>
+
 ### JS
 >```javascript
 ><script>
