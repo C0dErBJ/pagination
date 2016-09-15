@@ -20,31 +20,31 @@
 >               console.log(data)
 >               if (data.list.length == 0) {
 >                   $("table tbody").append("<tr class=\"pointer\">\n" +
->                           "                                <td class=\"a-center \" colspan=\"7\">未找到数据</td>\n" +
->                           "                            </tr>")
+>                           " <td class=\"a-center \" colspan=\"7\">未找到数据</td>\n" +
+>                           " </tr>")
 >               }
 >               data.list.forEach(function (e) {
 >                   $("table tbody").append("<tr class=\"pointer\">\n" +
->                           "                                <td class=\"a-center \">" + e.productname + "</td>\n" +
->                           "                                <td>" + e.salesstatus + "</td>\n" +
->                           "                                <td>" + e.sellingstage + "</td>\n" +
->                           "                                <td>" + e.totalaccount + "</td>\n" +
->                           "                                <td>" + e.sellingstage + "</td>\n" +
->                           "                                <td>" + e.issingscale + "</td>\n" +
->                           "                                <td><a href=\"/productlibrary/" + e.id + "\">查看详情</a></td>\n" +
->                           "                            </tr>")
+>                           " <td class=\"a-center \">" + e.productname + "</td>\n" +
+>                           " <td>" + e.salesstatus + "</td>\n" +
+>                           " <td>" + e.sellingstage + "</td>\n" +
+>                           " <td>" + e.totalaccount + "</td>\n" +
+>                           " <td>" + e.sellingstage + "</td>\n" +
+>                           " <td>" + e.issingscale + "</td>\n" +
+>                           " <td><a href=\"/productlibrary/" + e.id + "\">查看详情</a></td>\n" +
+>                           " </tr>")
 >
 >               })
 >           },
 >           ajaxErrorCallback: function () {
 >               $("table tbody").append("<tr class=\"pointer\">\n" +
->                       "                                <td class=\"a-center \" colspan=\"7\">未找到数据</td>\n" +
->                       "                            </tr>")
+>                       " <td class=\"a-center \" colspan=\"7\">未找到数据</td>\n" +
+>                       " </tr>")
 >           }
 >       });
 
 ###默认参数
->```json
+>```javascript
 > {
 >   pageIndex: 1,//默认页
 >   pageSize: 10,//默认分页大小
