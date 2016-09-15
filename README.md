@@ -5,7 +5,7 @@
 
 [pageView]: https://github.com/liuyunzhuge/blog/blob/master/form/src/js/mod/pageView.js
 
-> 依赖Jquery，Bootstrap
+> 依赖jquery，Bootstrap
 
 # 如何使用
 ### Html
