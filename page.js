@@ -317,12 +317,12 @@
         },
         optionCheck: function () {
             var check = true;
-            if (!options.isAjax && options.itemTag.toLowerCase().indexOf("a") == -1) {
-                $.error('非ajax分页，itemTag需要包含a标签')
+            if (options.url == null || options.url == "") {
+                $.error('需要设置url')
                 check = false;
             }
-            if (!options.isAjax && (options.url == null || options.url == "")) {
-                $.error('需要设置url')
+            if (options.isAjax && (options.responseItemCountName == null || options.responseItemCountName == "")) {
+                $.error('ajax分页需要设置responseItemCountName')
                 check = false;
             }
             return check;
@@ -334,6 +334,13 @@
             render(thisElement)
 
         },
+        updateSearchOption: function (opt) {
+            options.searchOption = opt;
+            thisElement.empty();
+            if (options.isAjax) {
+                ajaxPackage(1)
+            }
+        }
     }
 
     $.fn.pagination = function (method) {
