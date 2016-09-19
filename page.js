@@ -294,7 +294,7 @@
                 page.refresh(parseInt(getUrlParam(options.responseItemCountName)))
                 bindEvents(thisElement)
             } else {
-                ajaxPackage(1)
+                ajaxPackage(options.pageIndex)
             }
             if (typeof options.onChange == "function") {
                 this.on('pageViewChange', $.proxy(options.onChange, this));
