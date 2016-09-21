@@ -1,7 +1,7 @@
 /**
  * Created by C0dEr on 16/9/14.
  */
-;(function ($) {
+(function ($) {
   var _DEFAULT = {
     pageIndex: 1, // 默认页
     pageSize: 10, // 默认分页大小
