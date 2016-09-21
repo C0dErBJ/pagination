@@ -24,7 +24,7 @@
     totalCount: 0, // 总条数
     isAlwaysShow: false, // 当没有数据时是否显示分页
     isAjax: true, // 是否是ajax分页
-    needAjaxHandleData: true,//是否需要ajax控制数据渲染
+    needAjaxHandleData: true, // 是否需要ajax控制数据渲染
     containerTag: 'ul', // 分页容器
     itemTag: 'li a', // 分页项
     containerClass: 'pagination', // 容器样式
@@ -200,6 +200,7 @@
   function bindEvents ($element) {
     function pageIndexChange (pageIndex) {
       options.pageIndex = pageIndex
+      $(thisElement).data(options)
       console.log(pageIndex)
       thisElement.trigger('pageViewChange')
       if (!options.isAjax) {
@@ -284,11 +285,13 @@
   var page = {
     init: function (initData) {
       options = page.getOption(initData)
+      $(this).data(options)
       page.optionCheck()
       thisElement = this
       if (!options.isAjax) {
         options.pageIndex = parseInt(getUrlParam(options.pageIndexName))
         options.pageSize = parseInt(getUrlParam(options.pageSizeName))
+        $(this).data(options)
         page.refresh(parseInt(getUrlParam(options.responseItemCountName)))
         bindEvents(thisElement)
       } else {
@@ -326,7 +329,9 @@
       return check
     },
     refresh: function (total) {
+      options = thisElement.data()
       options.totalCount = total
+      $(thisElement).data(options)
       data.pages = Math.ceil(options.totalCount / options.pageSize)
       thisElement.empty()
       render(thisElement)
