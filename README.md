@@ -73,6 +73,7 @@
 >   totalCount: 0,//总条数
 >   isAlwaysShow: false,//当没有数据时是否显示分页
 >   isAjax: true,//是否是ajax分页
+>   needAjaxHandleData: true,//是否需要ajax控制数据渲染
 >   containerTag: "ul",//分页容器
 >   itemTag: "li a",//分页项
 >   containerClass: "pagination",//容器样式
