@@ -35,6 +35,7 @@
     url: '', // 分页url
     hasCache: false, // 是否需要缓存
     ajaxCallback: $.noop, // ajax回调
+    ajaxHeaders: {},//请求头
     ajaxErrorCallback: $.noop, // ajax错误回调
     ajaxMethod: 'POST', // ajax提交方法
     responseItemCountName: 'total', // 返回数据总条数名称
@@ -168,6 +169,7 @@
       // contentType: options.ajaxContentType,
       type: options.ajaxMethod,
       data: datas,
+      headers: options.ajaxHeaders,
       success: function (response) {
         if (typeof response == 'string') {
           var result = JSON.parse(response)
