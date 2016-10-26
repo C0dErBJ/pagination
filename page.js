@@ -180,7 +180,7 @@
                 } else {
                     result = response
                 }
-                $(options.tableContainer).empty()
+                $(thisElement).find(options.tableContainer).empty()
                 if (options.needAjaxHandleData) {
                     options.ajaxCallback(result)
                 }
@@ -224,7 +224,7 @@
                     } else {
                         result = response
                     }
-                    $(options.tableContainer).empty()
+                    $(thisElement).find(options.tableContainer).empty()
                     if (options.needAjaxHandleData) {
                         frontEndData = result[options.dataContainer]
                         options.ajaxCallback(result[options.dataContainer])
