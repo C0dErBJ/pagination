@@ -7,7 +7,7 @@
     pageSize: 10, // 默认分页大小
     pageIndexName: 'page', // 分页参数名称
     pageSizeName: 'pageSize', // 分页大小参数名称
-    onChange: $.noop, // 分页改变或分页大小改变时的回调
+    pageCountNumName: 'pageCountNum', // 页数
     allowActiveClick: true, // 控制当前页是否允许重复点击刷新
     middlePageItems: 4, // 中间连续部分显示的分页项
     frontPageItems: 2, // 分页起始部分最多显示2个分页项，否则就会出现省略分页项
@@ -23,30 +23,17 @@
     lastDisplay: true, // 是否显示尾页按钮
     totalCount: 0, // 总条数
     isAlwaysShow: false, // 当没有数据时是否显示分页
-    isAjax: true, // 是否是ajax分页
-    needAjaxHandleData: true, // 是否需要ajax控制数据渲染
     containerTag: 'ul', // 分页容器
     itemTag: 'li a', // 分页项
     containerClass: 'pagination', // 容器样式
     containerStyle: 'margin-top: 0px', // 容器style
     itemActiveClass: 'active', // 选中状态样式
     itemClass: '', // 一般样式
-    searchOption: {}, // 搜索条件
-    url: '', // 分页url
-    hasCache: false, // 是否需要缓存
-    ajaxCallback: $.noop, // ajax回调
-    ajaxHeaders: {}, // 请求头
-    ajaxErrorCallback: $.noop, // ajax错误回调
-    ajaxContentType: '', // contentType
-    ajaxMethod: 'POST', // ajax提交方法
-    responseItemCountName: 'count', // 返回数据总条数名称
-    tableContainer: 'table tbody', // 数据表格标签
-    isFrontEndPage: false,
-    dataContainer: 'records',
-    frontEndData: {}
+    onChanging: $.noop, // 分页切换前切换回调函数
+    onChanged: $.noop, // 分页切换后前切换回调函数
+    descriptionTemplate: '当前第${pageIndexName}页，每页展示${pageSizeName}条,一共${pageCountNumName}页', // 描述模板
+    needDescription: false
   }
-  var options = {}
-  var data = {}
   var pageItemClass = {
     'firstPage': 'firstpage',
     'prevPage': 'prevpage',
@@ -54,15 +41,12 @@
     'nextPage': 'nextpage',
     'lastPage': 'lastpage'
   }
-  var thisElement
-  var _init = false
-
   /**
    * 获取连续部分的起止索引
    */
-  function getInterval () {
+  function getInterval (options) {
     var ne_half = Math.ceil(options.middlePageItems / 2)
-    var np = data.pages
+    var np = options.pages
     var upper_limit = np - options.middlePageItems
     var start = options.pageIndex > ne_half ? Math.max(Math.min(options.pageIndex - ne_half, upper_limit), 0) : 0
     var end = options.pageIndex > ne_half ? Math.min(options.pageIndex + ne_half, np) : Math.min(options.middlePageItems, np)
@@ -70,28 +54,31 @@
   }
 
   function render (element) {
+    var options = $(element).data()
     function itemPackage (tags, isActive, html, itemActiveClass, itemClass, index, des) {
       if (tags.length == 0) {
         return html
       }
+
       var tempHtml = []
       var t = tags.pop()
       tempHtml.push(['<',
         t,
         " class='",
         tags.length == 0 ? itemClass + ' pageitem ' + des : '',
-        tags.length == 0 && ((options.pageIndex == data.pages && (index == options.lastText || index == options.nextText))
-        || (options.pageIndex == 1 && (index == options.firstText || index == options.prevText))) ? ' disabled ' : '',
+        tags.length == 0 && ((options.pageIndex == options.pages && (index == options.lastText || index == options.nextText)) ||
+        (options.pageIndex == 1 && (index == options.firstText || index == options.prevText))) ? ' disabled ' : '',
         ' ',
         isActive && tags.length == 0 ? itemActiveClass + "'" : " '",
         t.toLowerCase() == 'a' ? "href='javascript:;' " : '',
         " style='",
-        tags.length == 0 && ((options.pageIndex == data.pages && (index == options.lastText || index == options.nextText))
-        || (options.pageIndex == 1 && (index == options.firstText || index == options.prevText))) ? 'cursor:not-allowed' : '',
+        tags.length == 0 && ((options.pageIndex == options.pages && (index == options.lastText || index == options.nextText)) ||
+        (options.pageIndex == 1 && (index == options.firstText || index == options.prevText))) ? 'cursor:not-allowed' : '',
         "'>",
         html == null || html == '' ? index : html,
         '</', t,
-        '>'].join(''))
+        '>'
+      ].join(''))
       return itemPackage(tags, isActive, tempHtml.join(''), itemActiveClass, itemClass, index, des)
     }
 
@@ -112,7 +99,7 @@
     }
 
     function getItem () {
-      var interval = getInterval()
+      var interval = getInterval(options)
       var items = []
       // 产生起始点
       if (interval[0] > 0 && options.frontPageItems > 0) {
@@ -131,12 +118,12 @@
       }
 
       // 产生结束点
-      if (interval[1] < data.pages && options.backPageItems > 0) {
-        if (data.pages - options.backPageItems > interval[1] && options.ellipseText) {
+      if (interval[1] < options.pages && options.backPageItems > 0) {
+        if (options.pages - options.backPageItems > interval[1] && options.ellipseText) {
           items.push(options.ellipseText)
         }
-        var begin = Math.max(data.pages - options.backPageItems, interval[1])
-        for (var i = begin; i < data.pages; i++) {
+        var begin = Math.max(options.pages - options.backPageItems, interval[1])
+        for (var i = begin; i < options.pages; i++) {
           items.push(i + 1)
         }
       }
@@ -158,102 +145,43 @@
       container.append(itemPackage(options.itemTag.split(' '), false, '', '', options.itemClass, options.nextText, pageItemClass.nextPage))
       options.lastDisplay &&
       container.append(itemPackage(options.itemTag.split(' '), false, '', '', options.itemClass, options.lastText, pageItemClass.lastPage))
-    }
-  }
 
-  function ajaxPackage (pageIndex) {
-    var url = formParam(pageIndex), datas = {}
-    if (options.ajaxMethod.toLowerCase() == 'post') {
-      datas = options.searchOption
-      datas[options.pageIndexName] = pageIndex
-      datas[options.pageSizeName] = options.pageSize
-    }
-    $.ajax({
-      url: url,
-      contentType: options.ajaxContentType,
-      type: options.ajaxMethod,
-      data: datas,
-      headers: options.ajaxHeaders,
-      success: function (response) {
-        if (typeof response == 'string') {
-          var result = JSON.parse(response)
-        } else {
-          result = response
-        }
-        $(thisElement).find(options.tableContainer).empty()
-        if (options.needAjaxHandleData) {
-          options.ajaxCallback(result)
-        }
-        page.refresh(result[options.responseItemCountName])
-        if (!_init) {
-          _init = true
-          bindEvents(thisElement)
-        }
-      },
-      error: function () {
-        options.ajaxErrorCallback()
-      },
-      complete: function () {},
-      beforeSend: function () {
-        $(thisElement).find(options.itemTag).css('cursor', 'not-allowed')
-        if (_init) {
-          $(thisElement).find(options.containerTag).children().addClass('disabled')
-        }
-      }
-    })
-  }
-
-  function frontEndPackage (pageIndex) {
-    var frontEndResult = options.frontEndData
-    $(thisElement).find(options.tableContainer).empty()
-    options.ajaxCallback(frontEndResult.slice((options.pageIndex - 1) * options.pageSize, options.pageIndex * options.pageSize))
-    page.refresh(frontEndResult.length)
-    if (!_init) {
-      _init = true
-      bindEvents(thisElement)
+      options.needDescription && container.prepend(options.descriptionTemplate.replace('${' + options.pageIndexName + '}', options.pageIndex).replace('${' + options.pageSizeName + '}', options.pageSize).replace('${' + options.pageCountNumName + '}', options.totalCount))
     }
   }
 
   function bindEvents ($element) {
     function pageIndexChange (pageIndex) {
-      options.pageIndex = pageIndex
-      $(thisElement).data(options)
-      thisElement.trigger('pageViewChange')
-      if (!options.isAjax) {
-        window.location.href = formParam(pageIndex)
-      } else {
-        if (!options.isFrontEndPage) {
-          ajaxPackage(pageIndex)
-        } else {
-          frontEndPackage(pageIndex)
-        }
-      }
+      $($element).data().pageIndex = pageIndex
+      $($element).trigger('pageViewChanging')
+      page.refresh($element)
+      $($element).trigger('pageViewChanged')
     }
-
+    var options = $($element).data()
     // 首页
-    options.firstDisplay && $element.on('click', '.' + pageItemClass.firstPage + ':not(.disabled)', function (e) {
+    options.firstDisplay && $($element).find('.' + pageItemClass.firstPage + ':not(.disabled)').on('click', function (e) {
       e.preventDefault()
       options.totalCount != 0 &&
       pageIndexChange(1)
     })
     // 末页
-    options.lastDisplay && $element.on('click', '.' + pageItemClass.lastPage + ':not(.disabled)', function (e) {
+    options.lastDisplay && $($element).find('.' + pageItemClass.lastPage + ':not(.disabled)').on('click', function (e) {
       e.preventDefault()
       options.totalCount != 0 &&
-      pageIndexChange(data.pages)
+      pageIndexChange(options.pages)
     })
     // 上一页
-    options.prevDisplay && $element.on('click', '.' + pageItemClass.prevPage + ':not(.disabled)', function (e) {
+    options.prevDisplay && $($element).find('.' + pageItemClass.prevPage + ':not(.disabled)').on('click', function (e) {
       e.preventDefault()
       options.pageIndex > 1 && options.totalCount != 0 && pageIndexChange(options.pageIndex - 1)
     })
     // 下一页
-    options.nextDisplay && $element.on('click', '.' + pageItemClass.nextPage + ':not(.disabled)', function (e) {
+    options.nextDisplay && $($element).find('.' + pageItemClass.nextPage + ':not(.disabled)').on('click', function (e) {
       e.preventDefault()
-      options.pageIndex < data.pages && options.totalCount != 0 && pageIndexChange(options.pageIndex + 1)
+      options.pageIndex < options.pages && options.totalCount != 0 && pageIndexChange(options.pageIndex + 1)
     })
     // 具体页
-    $element.on('click', '.' + pageItemClass.itemNum + ':not(.disabled):not(.' + options.itemActiveClass + ')', function (e) {
+    $($element).find('.' + pageItemClass.itemNum + ':not(.disabled)').on('click', function (e) {
       e.preventDefault()
       var $this = $(this),
         callback = true
@@ -268,104 +196,63 @@
       }
     })
   }
-
-  function formParam (index) {
-    var param = [], paramString
-    if (options.isAjax) {
-      if (!options.hasCache) {
-        param.push(['&', 'tc', '=_', Date.parse(new Date())].join(''))
-      }
-      paramString = param.join('')
-      paramString = options.url + '?' + paramString.substr(1)
-      return encodeURI(paramString)
-    }
-    if (options.searchOption.length == 0) {
-      return ''
-    }
-    for (var item in options.searchOption) {
-      if (Object.prototype.hasOwnProperty.call(options.searchOption, item)) {
-        param.push(['&', item, '=', options.searchOption[item]].join(''))
+  function getOption (options) {
+    var defaults = page.getDefault(),
+      _opts = $.extend({}, defaults, options),
+      opts = {}
+    // 保证返回的对象内容项始终与当前类定义的DEFAULTS的内容项保持一致
+    for (var i in defaults) {
+      if (Object.prototype.hasOwnProperty.call(defaults, i)) {
+        opts[i] = _opts[i]
       }
     }
-    param.push(['&', options.pageIndexName, '=', index].join(''))
-    param.push(['&', options.pageSizeName, '=', options.pageSize].join(''))
-    !options.hasCache && param.push(['&', 'tc', '=_', Date.parse(new Date())].join(''))
-    paramString = param.join('')
-    paramString = options.url + '?' + paramString.substr(1)
-    return encodeURI(paramString)
+    return opts
   }
-
-  function getUrlParam (name) {
-    var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)'); // 构造一个含有目标参数的正则表达式对象
-    var r = window.location.search.substr(1).match(reg); // 匹配目标参数
-    if (r != null) return decodeURI(r[2])
-    return null; // 返回参数值
-  }
-
   var page = {
     init: function (initData) {
-      options = page.getOption(initData)
+      options = getOption(initData)
+      page.optionCheck(options)
+      options.thisElement = this
       $(this).data(options)
-      page.optionCheck()
-      thisElement = this
-      if (!options.isAjax) {
-        options.pageIndex = parseInt(getUrlParam(options.pageIndexName))
-        options.pageSize = parseInt(getUrlParam(options.pageSizeName))
-        $(this).data(options)
-        page.refresh(parseInt(getUrlParam(options.responseItemCountName)))
-        bindEvents(thisElement)
-      } else {
-        if (!options.isFrontEndPage) {
-          ajaxPackage(options.pageIndex)
-        } else {
-          frontEndPackage(options.pageIndex)
-        }
+      page.refresh(this)
+      if (typeof options.onChanging == 'function') {
+        this.on('pageViewChanging', function () {
+          var options = $(this).data()
+          options.onChanging.call(options.onChanging, options.pageIndex, options.pageSize)
+        })
       }
-      if (typeof options.onChange == 'function') {
-        this.on('pageViewChange', $.proxy(options.onChange, this))
+      if (typeof options.onChanged == 'function') {
+        this.on('pageViewChanged', function () {
+          var options = $(this).data()
+          options.onChanged.call(options.onChanged, options.pageIndex, options.pageSize)
+        })
       }
     },
     getDefault: function () {
       return _DEFAULT
     },
-    getOption: function (options) {
-      var defaults = page.getDefault(),
-        _opts = $.extend({}, defaults, options),
-        opts = {}
-      // 保证返回的对象内容项始终与当前类定义的DEFAULTS的内容项保持一致
-      for (var i in defaults) {
-        if (Object.prototype.hasOwnProperty.call(defaults, i)) {
-          opts[i] = _opts[i]
-        }
-      }
-      return opts
-    },
-    optionCheck: function () {
+    optionCheck: function (options) {
       var check = true
-      if (options.url == null || options.url == '') {
-        $.error('需要设置url')
-        check = false
-      }
-      if (options.isAjax && (options.responseItemCountName == null || options.responseItemCountName == '')) {
-        $.error('ajax分页需要设置responseItemCountName')
-        check = false
+      if (options.totalCount == undefined || options.totalCount == 0) {
+        $.error('需要设置totalcount总条数')
       }
       return check
     },
-    refresh: function (total) {
-      options = thisElement.data()
-      options.totalCount = total
-      $(thisElement).data(options)
-      data.pages = Math.ceil(options.totalCount / options.pageSize)
-      thisElement.empty()
-      render(thisElement)
+    refresh: function ($element) {
+      options = $($element).data()
+      options.pages = Math.ceil(options.totalCount / options.pageSize)
+      $($element).empty()
+      render($element)
+      bindEvents($element)
     },
-    updateSearchOption: function (opt) {
-      options.searchOption = opt
-      thisElement.empty()
-      if (options.isAjax) {
-        ajaxPackage(1)
-      }
+    changePage: function (pageIndex) {
+      $(this).data().pageIndex = pageIndex
+      $(this).trigger('pageViewChanging')
+      page.refresh(this)
+      $(this).trigger('pageViewChanged')
+    },
+    resetOptions: function (options) {
+      page.init(options)
     }
   }
 
