@@ -29,8 +29,7 @@
     containerStyle: 'margin-top: 0px', // 容器style
     itemActiveClass: 'active', // 选中状态样式
     itemClass: '', // 一般样式
-    onChanging: $.noop, // 分页切换前切换回调函数
-    onChanged: $.noop, // 分页切换后前切换回调函数
+    onChange: $.noop, // 分页切换回调函数
     descriptionTemplate: '当前第${pageIndexName}页，每页展示${pageSizeName}条,一共${pageCountNumName}页', // 描述模板
     needDescription: false
   }
@@ -153,9 +152,9 @@
   function bindEvents ($element) {
     function pageIndexChange (pageIndex) {
       $($element).data().pageIndex = pageIndex
-      $($element).trigger('pageViewChanging')
+      $($element).trigger('pageViewChange')
       page.refresh($element)
-      $($element).trigger('pageViewChanged')
+      
     }
     var options = $($element).data()
     // 首页
@@ -215,17 +214,12 @@
       options.thisElement = this
       $(this).data(options)
       page.refresh(this)
-      if (typeof options.onChanging == 'function') {
-        this.on('pageViewChanging', function () {
+      if (typeof options.onChange == 'function') {
+        this.on('pageViewChange', function () {
           var options = $(this).data()
-          options.onChanging.call(options.onChanging, options.pageIndex, options.pageSize)
+          options.onChange.call(options.onChange, options.pageIndex, options.pageSize)
         })
-      }
-      if (typeof options.onChanged == 'function') {
-        this.on('pageViewChanged', function () {
-          var options = $(this).data()
-          options.onChanged.call(options.onChanged, options.pageIndex, options.pageSize)
-        })
+        $(this).trigger('pageViewChange')
       }
     },
     getDefault: function () {
@@ -247,9 +241,8 @@
     },
     changePage: function (pageIndex) {
       $(this).data().pageIndex = pageIndex
-      $(this).trigger('pageViewChanging')
+      $(this).trigger('pageViewChange')
       page.refresh(this)
-      $(this).trigger('pageViewChanged')
     },
     resetOptions: function (options) {
       page.init(options)

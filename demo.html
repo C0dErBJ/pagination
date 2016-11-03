@@ -9,19 +9,16 @@
 
 <body>
 	<div id="page"></div>
-
-	<div id="page2"></div>
 	<script>
-        $("#page").pagination({totalCount:193,
-		onChanging:function(data){
+		 $("#page").pagination({
+			pageIndex: 1, // 默认页
+    pageSize: 10, // 默认分页大小
+			totalCount:192,
+		onChange:function(data){
 			console.log(data)
 		}})
 
-		 $("#page2").pagination({totalCount:193,
-		onChanging:function(pageIndex,pageSize){
-			console.log(pageIndex)
-			console.log(pageSize)
-		}})
+		
     </script>
 </body>
 
