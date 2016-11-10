@@ -130,7 +130,7 @@
       return items
     }
 
-    if (options.isAlwaysShow || options.totalCount != 0) {
+    
       var container = element.append(containerPackage()).find(options.containerTag)
       options.firstDisplay &&
       container.append(itemPackage(options.itemTag.split(' '), false, '', '', options.itemClass, options.firstText, pageItemClass.firstPage))
@@ -146,6 +146,9 @@
       container.append(itemPackage(options.itemTag.split(' '), false, '', '', options.itemClass, options.lastText, pageItemClass.lastPage))
 
       options.needDescription && container.prepend(options.descriptionTemplate.replace('${' + options.pageIndexName + '}', options.pageIndex).replace('${' + options.pageSizeName + '}', options.pageSize).replace('${' + options.pageCountNumName + '}', options.totalCount))
+    
+     if (!options.isAlwaysShow && options.totalCount == 0) {
+            container.empty();
     }
   }
 
@@ -227,7 +230,7 @@
     },
     optionCheck: function (options) {
       var check = true
-      if (options.totalCount == undefined || options.totalCount == 0) {
+      if (options.totalCount == undefined || options.totalCount == null) {
         $.error('需要设置totalcount总条数')
       }
       return check
